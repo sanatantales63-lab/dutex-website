@@ -1,0 +1,579 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Search, Info, Check, X, Phone, MessageCircle, ChevronDown } from 'lucide-react';
+
+const PRODUCTS = [
+  {
+    id: 1,
+    name: "Ducon Imperial Lakshya",
+    range: "IMPERIAL",
+    category: "interior",
+    shortDesc: "Smooth, long-lasting interior emulsion for walls with excellent coverage and vibrant finish.",
+    desc: "Ducon Imperial Lakshya is a premium interior wall emulsion that delivers a rich, smooth finish. It offers excellent coverage, superior whiteness, and vibrant color retention. Formulated for easy application, it creates a uniform, washable surface that looks fresh for years.",
+    image: "/images/IMG-20260620-WA0020.jpg",
+    features: ["Superior Whiteness & Coverage", "Washable & Stain Resistant", "Smooth Uniform Finish", "Eco-Friendly Formula"],
+    application: "Apply 2 coats over wall putty and primer for best results.",
+    coverage: "130–150 sq.ft per litre for 2 coats",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Lakshya Emulsion.pdf",
+    rangeColor: "#0066CC"
+  },
+  {
+    id: 2,
+    name: "Ducon Imperial Impression",
+    range: "IMPERIAL",
+    category: "exterior",
+    shortDesc: "High-performance exterior emulsion with weather resistance for long-lasting protection.",
+    desc: "Ducon Imperial Impression Exterior Emulsion is engineered for maximum weather resistance. Its advanced formula repels water, resists UV fading, and protects walls from harsh monsoon conditions, dust, and algae growth — keeping exteriors vibrant for years.",
+    image: "/images/IMG-20260620-WA0018.jpg",
+    features: ["UV & Fade Protection", "Water Repellent Barrier", "Anti-Algae & Anti-Fungal", "Crack Resistant Formula"],
+    application: "Apply 2 coats over exterior primer on clean, dry surface.",
+    coverage: "60–80 sq.ft per litre for 2 coats",
+    sizes: ["4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Impression Emulsion.pdf",
+    rangeColor: "#4A7C3F"
+  },
+  {
+    id: 3,
+    name: "Ducon Monarch Impression Shyne",
+    range: "MONARCH",
+    category: "exterior",
+    shortDesc: "Premium exterior emulsion with a lasting shyne finish and superior weather protection.",
+    desc: "Ducon Monarch Impression Shyne is a premium-grade exterior emulsion with a subtle sheen finish. Its advanced silicon-acrylic technology forms a tough, flexible film that resists cracking, peeling, and discoloration — even in the harshest weather conditions.",
+    image: "/images/IMG-20260620-WA0019.jpg",
+    features: ["Silicon-Acrylic Technology", "Premium Shyne Finish", "10 Year Durability", "Dust & Dirt Resistant"],
+    application: "Apply 2 coats over exterior damp-proof primer.",
+    coverage: "55–70 sq.ft per litre for 2 coats",
+    sizes: ["4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Impression Shyne Ext Emulsion.pdf",
+    rangeColor: "#1A3A6E"
+  },
+  {
+    id: 4,
+    name: "Ducon Elite Lavanya",
+    range: "ELITE",
+    category: "interior",
+    shortDesc: "Premium plastic emulsion for interior & exterior with a lustrous, long-lasting finish.",
+    desc: "Ducon Elite Lavanya Plastic Emulsion is a top-tier coating suitable for both interior and exterior applications. Its high-solid acrylic formula delivers a rich plastic sheen with excellent opacity, hiding power, and long-lasting beauty that transforms every surface.",
+    image: "/images/IMG-20260620-WA0012.jpg",
+    features: ["Interior & Exterior Use", "High Opacity & Coverage", "Premium Plastic Sheen", "Anti-Bacterial Protection"],
+    application: "2 coats over Ducoprime primer. Mix with water (10–20%) if required.",
+    coverage: "100–120 sq.ft per litre for 2 coats",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Lavanya Interior Emulsion.pdf",
+    rangeColor: "#1A4A8A"
+  },
+  {
+    id: 5,
+    name: "Ducon Monarch Hi Sheen",
+    range: "MONARCH",
+    category: "interior",
+    shortDesc: "Stunning high-sheen premium emulsion for walls that demand elegance and luxury.",
+    desc: "Ducon Monarch Hi Sheen Premium Emulsion offers a dazzling high-gloss sheen that instantly elevates interior spaces. With superior coverage and color retention, it creates a smooth, reflective surface that looks glamorous and stays vibrant through years of use.",
+    image: "/images/IMG-20260620-WA0017.jpg",
+    features: ["High Gloss Sheen Finish", "Superior Color Retention", "Easy Application", "Washable & Durable"],
+    application: "Apply 2 coats over acrylic primer for maximum sheen.",
+    coverage: "110–130 sq.ft per litre for 2 coats",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Hi Sheen Emulsion.pdf",
+    rangeColor: "#8B1A6B"
+  },
+  {
+    id: 6,
+    name: "Ducon Imperial Ezy",
+    range: "IMPERIAL",
+    category: "distemper",
+    shortDesc: "100% acrylic smart distemper for economical, high-coverage interior wall finishing.",
+    desc: "Ducon Imperial Ezy Smart Distemper is a 100% acrylic water-based distemper offering excellent coverage and a clean, matte finish. Economical yet high-performing, it is ideal for new constructions and renovation projects requiring quick, reliable wall coating.",
+    image: "/images/IMG-20260620-WA0021.jpg",
+    features: ["100% Acrylic Formula", "High Coverage & Economy", "Quick Drying", "Smooth Matte Finish"],
+    application: "Mix with water and apply 2 coats on clean, dry surface.",
+    coverage: "150–180 sq.ft per kg for 2 coats",
+    sizes: ["5 kg", "10 kg", "20 kg"],
+    catalogPdf: "/catalogs/Ezy Distemper.pdf",
+    rangeColor: "#8B4000"
+  },
+  {
+    id: 7,
+    name: "Ducon Monarch Acrylic Distemper",
+    range: "MONARCH",
+    category: "distemper",
+    shortDesc: "Premium acrylic distemper with rich coverage for smooth, long-lasting matte finish.",
+    desc: "Ducon Monarch Acrylic Distemper is a high-quality, water-based distemper with excellent binding properties. It provides a rich, uniform matte finish with superior hiding power — making it an ideal choice for both residential and commercial interior walls.",
+    image: "/images/IMG-20260620-WA0014.jpg",
+    features: ["100% Acrylic Binders", "Excellent Hiding Power", "Matte Smooth Finish", "Economical & Durable"],
+    application: "Apply 2 coats with brush or roller over primed surface.",
+    coverage: "140–160 sq.ft per kg for 2 coats",
+    sizes: ["5 kg", "10 kg", "20 kg"],
+    catalogPdf: "/catalogs/Ducon Distemper.pdf",
+    rangeColor: "#2D5C1A"
+  },
+  {
+    id: 8,
+    name: "Ducoprime Gold Cement Primer",
+    range: "MONARCH",
+    category: "primer",
+    shortDesc: "Premium gold cement primer for exceptional paint bonding on new & old walls.",
+    desc: "Ducoprime Gold Cement Primer is an alkali-resistant primer formulated for deep penetration into new cement and masonry surfaces. It neutralizes alkalinity, seals the surface, and creates a superior bonding base for topcoats — ensuring durability and long-lasting paint adhesion.",
+    image: "/images/IMG-20260620-WA0015.jpg",
+    features: ["Deep Penetration Formula", "Alkali & Efflorescence Resistant", "Superior Paint Bonding", "Seals Porous Surfaces"],
+    application: "1–2 coats on new plaster before wall putty or paint application.",
+    coverage: "150–180 sq.ft per litre per coat",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Ducoprime Gold Primer.pdf",
+    rangeColor: "#8B6914"
+  },
+  {
+    id: 9,
+    name: "Ducoprime Silver Cement Primer",
+    range: "IMPERIAL",
+    category: "primer",
+    shortDesc: "Reliable cement primer for solid paint adhesion and surface sealing.",
+    desc: "Ducoprime Silver Cement Primer is an economical yet effective water-based cement primer designed for interior walls. It provides excellent adhesion for subsequent coats of distempers and emulsions, reduces absorption, and ensures uniform paint finishing.",
+    image: "/images/IMG-20260620-WA0016.jpg",
+    features: ["Strong Surface Adhesion", "Reduces Paint Absorption", "Alkali Resistant", "Budget Friendly"],
+    application: "Apply 1 coat on new plaster. Allow to dry before painting.",
+    coverage: "160–200 sq.ft per litre",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Ducoprime Silver Primer.pdf",
+    rangeColor: "#6A4A9E"
+  },
+  {
+    id: 10,
+    name: "Ducon Monarch Trust Interior",
+    range: "MONARCH",
+    category: "interior",
+    shortDesc: "Trusted interior emulsion with smooth finish and lasting color for every home.",
+    desc: "Ducon Monarch Trust Interior Emulsion is a dependable, premium-quality interior paint offering excellent coverage, smooth finish, and vibrant color. Its washable formula ensures walls stay fresh and clean, making it a trusted choice for homeowners across India.",
+    image: "/images/IMG-20260620-WA0013.jpg",
+    features: ["Washable & Scrub Resistant", "Vibrant Color Palette", "Smooth Trowel Finish", "Long Lasting"],
+    application: "2 coats over primer for smooth, uniform finish.",
+    coverage: "120–140 sq.ft per litre for 2 coats",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Trust Interior Emulsion.pdf",
+    rangeColor: "#006B6B"
+  },
+  {
+    id: 11,
+    name: "Ducon Rustic Paint (Texture)",
+    range: "DUTEX",
+    category: "texture",
+    shortDesc: "Premium granular texture paint for luxurious stone-like exterior & feature wall finishes.",
+    desc: "Ducon Rustic Paint is a high-build granular texture coating that produces a beautiful natural stone effect on walls. Mixed with natural aggregates and quartz, it provides maximum mechanical protection while delivering stunning visual appeal for exteriors and feature walls.",
+    image: "/images/IMG-20260620-WA0036.jpg",
+    features: ["Natural Stone Effect", "Granular Texture Finish", "Weather & Impact Resistant", "Ideal for Exterior Feature Walls"],
+    application: "Apply with steel trowel or spray. 1 thick coat on primed surface.",
+    coverage: "15–20 sq.ft per kg",
+    sizes: ["10 kg", "25 kg", "50 kg"],
+    catalogPdf: "/catalogs/Rustic Paint.pdf",
+    rangeColor: "#7C4E2B"
+  },
+  {
+    id: 12,
+    name: "Premium Luxury Emulsion",
+    range: "DUTEX",
+    category: "interior",
+    shortDesc: "Ultra-premium luxury emulsion for the most demanding interiors requiring a flawless finish.",
+    desc: "Premium Luxury Emulsion by Dutex is the pinnacle of interior wall coating technology. With its velvet-matte formula and superior pigment loading, it delivers an unmatched depth of color and silky-smooth finish that defines luxury living spaces.",
+    image: "/images/IMG-20260620-WA0046.jpg",
+    features: ["Velvet Matte Luxury Finish", "Superior Pigment Loading", "Zero VOC Formula", "Washable & Stain Proof"],
+    application: "2 coats over premium putty and primer for best results.",
+    coverage: "120–140 sq.ft per litre for 2 coats",
+    sizes: ["1L", "4L", "10L", "20L"],
+    catalogPdf: "/catalogs/Premium Luxury Emulsion.pdf",
+    rangeColor: "#3D1A00"
+  }
+];
+
+const RANGE_COLORS = {
+  'IMPERIAL': '#0055A5',
+  'MONARCH': '#1A6B5A',
+  'ELITE': '#C0392B',
+  'DUTEX': '#7C4E2B'
+};
+
+function useInView(threshold = 0.15) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return [ref, inView];
+}
+
+function ProductCard({ prod, index, onSelect }) {
+  const [ref, inView] = useInView();
+  const rangeColor = RANGE_COLORS[prod.range] || '#333';
+
+  return (
+    <div
+      ref={ref}
+      onClick={() => onSelect(prod)}
+      style={{
+        backgroundColor: 'var(--bg-white)',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
+        border: '1px solid var(--border-color)',
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'pointer',
+        opacity: inView ? 1 : 0,
+        transform: inView ? 'translateY(0)' : 'translateY(40px)',
+        transition: `opacity 0.5s ease ${index * 0.07}s, transform 0.5s ease ${index * 0.07}s, box-shadow 0.3s ease`,
+      }}
+      className="product-card-hover"
+    >
+      {/* Product Image */}
+      <div style={{ height: '200px', overflow: 'hidden', position: 'relative', background: '#f8f9fa' }}>
+        <img
+          src={prod.image}
+          alt={prod.name}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '12px', transition: 'transform 0.4s ease' }}
+          className="product-card-img"
+        />
+        <span style={{
+          position: 'absolute', top: '12px', left: '12px',
+          backgroundColor: rangeColor,
+          color: 'white', fontSize: '10px', fontWeight: '800',
+          padding: '4px 10px', borderRadius: '20px',
+          textTransform: 'uppercase', letterSpacing: '1px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+        }}>
+          {prod.range}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: '20px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600', marginBottom: '4px' }}>
+          {prod.category}
+        </span>
+        <h3 style={{ fontSize: '16px', marginBottom: '8px', lineHeight: '1.3', color: 'var(--text-dark)' }}>{prod.name}</h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: '1.5', flexGrow: 1, marginBottom: '16px' }}>
+          {prod.shortDesc}
+        </p>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onSelect(prod); }}
+            style={{
+              flex: 1, padding: '10px', borderRadius: '8px',
+              fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+              backgroundColor: rangeColor, color: 'white',
+              border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              transition: 'opacity 0.2s'
+            }}
+          >
+            <Info size={14} /> View Details
+          </button>
+          <a
+            href={prod.catalogPdf}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              padding: '10px 14px', borderRadius: '8px', fontSize: '13px',
+              fontWeight: '600', cursor: 'pointer', border: `2px solid ${rangeColor}`,
+              color: rangeColor, background: 'transparent', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap'
+            }}
+          >
+            PDF
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Products() {
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Toggle modal-open class on body
+  useEffect(() => {
+    if (selectedProduct) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [selectedProduct]);
+
+  const TABS = [
+    { id: 'all', label: 'All Products' },
+    { id: 'interior', label: 'Interior Emulsion' },
+    { id: 'exterior', label: 'Exterior Emulsion' },
+    { id: 'distemper', label: 'Distemper' },
+    { id: 'primer', label: 'Primers' },
+    { id: 'texture', label: 'Textures' },
+  ];
+
+  const filteredProducts = PRODUCTS.filter(prod => {
+    const matchesTab = activeTab === 'all' || prod.category === activeTab;
+    const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prod.shortDesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prod.range.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
+
+  const rangeColor = selectedProduct ? (RANGE_COLORS[selectedProduct.range] || '#333') : '#333';
+
+  return (
+    <div className="section-padding animate-fade" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <style>{`
+        .product-card-hover:hover {
+          box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important;
+          transform: translateY(-6px) !important;
+        }
+        .product-card-hover:hover .product-card-img {
+          transform: scale(1.06);
+        }
+        .tab-btn:hover { opacity: 0.85; }
+        .enquire-btn { transition: transform 0.2s, box-shadow 0.2s; }
+        .enquire-btn:hover { transform: scale(1.04); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        @keyframes fadeScaleIn {
+          from { opacity: 0; transform: scale(0.94); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScaleIn 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+        @media (max-width: 640px) {
+          .modal-grid-inner { grid-template-columns: 1fr !important; }
+          .modal-img { height: 200px !important; }
+        }
+      `}</style>
+
+      <div className="container">
+
+        {/* Header */}
+        <div className="section-title-wrapper">
+          <span className="section-subtitle">Awantika & Aaradhya Group</span>
+          <h2 className="section-title">Our <span>Product Range</span></h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '12px auto 0', fontSize: '14px' }}>
+            Premium Ducon & Dutex paints, emulsions, distempers, textures and primers — built for quality and lasting beauty.
+          </p>
+        </div>
+
+        {/* Filters Row */}
+        <div style={{
+          backgroundColor: 'var(--bg-white)', padding: '20px 24px',
+          borderRadius: '16px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          border: '1px solid var(--border-color)', marginBottom: '40px',
+          display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                className="tab-btn"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: '9px 18px', borderRadius: '20px', fontWeight: '600', fontSize: '13px', cursor: 'pointer',
+                  backgroundColor: activeTab === tab.id ? 'var(--primary)' : 'transparent',
+                  color: activeTab === tab.id ? 'white' : 'var(--text-dark)',
+                  border: activeTab === tab.id ? '2px solid var(--primary)' : '2px solid var(--border-color)',
+                  transition: 'all 0.2s'
+                }}
+              >{tab.label}</button>
+            ))}
+          </div>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%', padding: '10px 16px 10px 40px',
+                borderRadius: '20px', border: '1px solid var(--border-color)',
+                fontSize: '13px', backgroundColor: 'var(--bg-primary)',
+                outline: 'none', boxSizing: 'border-box'
+              }}
+            />
+            <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          </div>
+        </div>
+
+        {/* Product Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+          gap: '28px'
+        }}>
+          {filteredProducts.map((prod, i) => (
+            <ProductCard key={prod.id} prod={prod} index={i} onSelect={setSelectedProduct} />
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredProducts.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '16px' }}>No products found for your search.</p>
+          </div>
+        )}
+
+        {/* ENQUIRY BANNER */}
+        <div style={{
+          marginTop: '60px', background: 'linear-gradient(135deg, var(--primary) 0%, #3a4a2a 100%)',
+          borderRadius: '20px', padding: '40px 36px', color: 'white',
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '20px'
+        }}>
+          <div>
+            <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '6px' }}>Need Help Choosing the Right Paint?</h3>
+            <p style={{ opacity: 0.85, fontSize: '14px' }}>Our experts will guide you to the perfect product for your wall & budget.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <a href="tel:+917225020180" className="enquire-btn" style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              backgroundColor: 'white', color: 'var(--primary)',
+              padding: '12px 22px', borderRadius: '10px', fontWeight: '700', fontSize: '14px',
+              textDecoration: 'none'
+            }}>
+              <Phone size={16} /> Call Now
+            </a>
+            <a href="https://wa.me/917225020180" target="_blank" rel="noreferrer" className="enquire-btn" style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              backgroundColor: '#25D366', color: 'white',
+              padding: '12px 22px', borderRadius: '10px', fontWeight: '700', fontSize: '14px',
+              textDecoration: 'none'
+            }}>
+              <MessageCircle size={16} /> WhatsApp Us
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      {/* PRODUCT DETAIL MODAL */}
+      {selectedProduct && createPortal(
+        <div
+          onClick={() => setSelectedProduct(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.75)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            zIndex: 999999, padding: '20px', backdropFilter: 'blur(6px)'
+          }}
+        >
+          <div
+            className="modal-animate modal-grid-inner"
+            onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: 'var(--bg-white)', width: '100%', maxWidth: '780px',
+              maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.4)', position: 'relative',
+              display: 'grid', gridTemplateColumns: '1fr 1.3fr',
+              border: '1px solid var(--border-color)'
+            }}
+          >
+            {/* Close Button */}
+            <button 
+              onClick={() => setSelectedProduct(null)} 
+              aria-label="Close modal"
+              style={{
+                position: 'absolute', top: '16px', right: '16px', zIndex: 100,
+                width: '38px', height: '38px', borderRadius: '50%',
+                backgroundColor: 'rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dark)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            {/* Left: Image */}
+            <div style={{ backgroundColor: '#f5f7fa', display: 'flex', flexDirection: 'column' }}>
+              <div className="modal-img" style={{ height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                <img src={selectedProduct.image} alt={selectedProduct.name}
+                  style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.15))' }} />
+              </div>
+              <div style={{ padding: '20px', borderTop: '1px solid var(--border-color)' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: rangeColor, letterSpacing: '1px', display: 'block', marginBottom: '10px' }}>
+                  Packaging Sizes
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {selectedProduct.sizes.map((sz, i) => (
+                    <span key={i} style={{
+                      backgroundColor: 'white', border: `2px solid ${rangeColor}`,
+                      color: rangeColor, padding: '5px 12px', borderRadius: '20px',
+                      fontSize: '12px', fontWeight: '700'
+                    }}>{sz}</span>
+                  ))}
+                </div>
+                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'white', borderRadius: '10px', borderLeft: `4px solid ${rangeColor}` }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: rangeColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Coverage</span>
+                  <p style={{ fontSize: '13px', marginTop: '4px', fontWeight: '600', color: 'var(--text-dark)' }}>{selectedProduct.coverage}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Info */}
+            <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.5px', color: rangeColor, display: 'block', marginBottom: '6px' }}>
+                {selectedProduct.range} Range • {selectedProduct.category}
+              </span>
+              <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '12px', color: 'var(--text-dark)', lineHeight: '1.2' }}>
+                {selectedProduct.name}
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: '1.65', marginBottom: '20px' }}>
+                {selectedProduct.desc}
+              </p>
+
+              <h4 style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px', color: 'var(--text-dark)', fontWeight: '700' }}>
+                Key Features
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+                {selectedProduct.features.map((feat, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', backgroundColor: 'var(--bg-primary)', borderRadius: '8px' }}>
+                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: rangeColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Check size={11} color="white" />
+                    </div>
+                    <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-dark)' }}>{feat}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ padding: '14px', background: 'var(--bg-primary)', borderRadius: '10px', borderLeft: `4px solid ${rangeColor}`, marginBottom: '20px' }}>
+                <strong style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: rangeColor, display: 'block', marginBottom: '4px' }}>Application Method</strong>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: '1.5' }}>{selectedProduct.application}</p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
+                <a
+                  href={selectedProduct.catalogPdf}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: '10px', fontWeight: '700', fontSize: '13px',
+                    backgroundColor: rangeColor, color: 'white', textAlign: 'center', textDecoration: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                  }}
+                >
+                  📄 View Product PDF
+                </a>
+                <a
+                  href={`https://wa.me/917225020180?text=${encodeURIComponent(`Hi! I am interested in *${selectedProduct.name}* (${selectedProduct.range} Range - ${selectedProduct.category}). Please share more details and pricing.`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: '10px', fontWeight: '700', fontSize: '13px',
+                    backgroundColor: '#25D366', color: 'white', textAlign: 'center', textDecoration: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                  }}
+                >
+                  <MessageCircle size={16} /> Enquire Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}

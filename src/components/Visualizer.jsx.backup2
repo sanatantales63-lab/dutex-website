@@ -1,0 +1,422 @@
+import React, { useState, useRef, useEffect } from 'react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Each color has its own pre-rendered real room photograph — walls are already
+// realistically painted by AI, no canvas masking needed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const COLORS = [
+  {
+    id: 'olive',
+    name: 'Dutex Olive',
+    hex: '#6B7A4E',
+    image: '/images/viz_olive.jpg',
+    label: 'Natural & Fresh',
+    desc: 'Inspired by nature, ideal for feature walls and study rooms.',
+  },
+  {
+    id: 'terracotta',
+    name: 'Royal Terracotta',
+    hex: '#A94E1D',
+    image: '/images/viz_terracotta.jpg',
+    label: 'Warm & Earthy',
+    desc: 'A rich clay shade that brings grounding energy to any space.',
+  },
+  {
+    id: 'gold',
+    name: 'Sand Gold',
+    hex: '#C4974A',
+    image: '/images/viz_sand_gold.jpg',
+    label: 'Regal & Golden',
+    desc: 'Elegant warm gold that adds a luxurious, reflective quality.',
+  },
+  {
+    id: 'beige',
+    name: 'Vintage Beige',
+    hex: '#D9CDB4',
+    image: '/images/viz_beige.jpg',
+    label: 'Soft & Elegant',
+    desc: 'A soft off-white base that complements any interior texture.',
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Spruce',
+    hex: '#2E5244',
+    image: '/images/viz_ocean.jpg',
+    label: 'Bold & Moody',
+    desc: 'Deep teal-forest green for a cozy, bold environment.',
+  },
+  {
+    id: 'rose',
+    name: 'Dusty Rose',
+    hex: '#9C6F6D',
+    image: '/images/viz_rose.jpg',
+    label: 'Romantic & Warm',
+    desc: 'Muted clay-pink that pairs beautifully with brass accents.',
+  },
+  {
+    id: 'mustard',
+    name: 'Warm Mustard',
+    hex: '#B89240',
+    image: '/images/viz_mustard.jpg',
+    label: 'Vibrant & Sunny',
+    desc: 'A creative accent that stimulates light, warmth, and joy.',
+  },
+];
+
+// Texture CSS filter definitions — applied to the real photo subtly
+const TEXTURES = [
+  {
+    id: 'flat',
+    name: 'Premium Flat',
+    icon: '◼',
+    desc: 'Smooth matte, zero sheen',
+    imgStyle: {},
+    overlayStyle: null,
+  },
+  {
+    id: 'sandstone',
+    name: 'Sandstone Grain',
+    icon: '▤',
+    desc: 'Fine gritty rustic matte',
+    imgStyle: { filter: 'contrast(1.06) saturate(0.88)' },
+    overlayStyle: {
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E")`,
+      backgroundSize: '180px 180px',
+      mixBlendMode: 'overlay',
+      opacity: 0.55,
+    },
+  },
+  {
+    id: 'stucco',
+    name: 'Stucco Swirl',
+    icon: '◈',
+    desc: 'Hand-troweled plaster',
+    imgStyle: { filter: 'contrast(1.09) brightness(0.97)' },
+    overlayStyle: {
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.12' numOctaves='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23ffffff' surfaceScale='2'%3E%3CfeDistantLight azimuth='215' elevation='55'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E")`,
+      backgroundSize: '320px 320px',
+      mixBlendMode: 'soft-light',
+      opacity: 0.65,
+    },
+  },
+  {
+    id: 'metallic',
+    name: 'Metallic Pearl',
+    icon: '✦',
+    desc: 'Pearlescent shimmer',
+    imgStyle: { filter: 'contrast(1.04) brightness(1.05) saturate(1.1)' },
+    overlayStyle: {
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 42%, rgba(255,255,255,0.12) 100%)',
+      mixBlendMode: 'screen',
+      opacity: 1,
+    },
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function Visualizer() {
+  const [selColor, setSelColor]     = useState(COLORS[0]);
+  const [selTex, setSelTex]         = useState(TEXTURES[0]);
+  const [fading, setFading]         = useState(false);
+  const [nextColor, setNextColor]   = useState(null);
+  const timerRef                    = useRef(null);
+
+  // Smooth crossfade when color changes
+  const handleColor = (col) => {
+    if (col.id === selColor.id) return;
+    clearTimeout(timerRef.current);
+    setFading(true);
+    setNextColor(col);
+    timerRef.current = setTimeout(() => {
+      setSelColor(col);
+      setFading(false);
+      setNextColor(null);
+    }, 260);
+  };
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  const displayed = fading && nextColor ? nextColor : selColor;
+
+  return (
+    <div
+      className="visualizer-grid"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1.1fr 0.9fr',
+        gap: '40px',
+        alignItems: 'center',
+        background: 'var(--bg-white)',
+        padding: '30px',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-md)',
+      }}
+    >
+      {/* ── ROOM PHOTO PREVIEW ─────────────────────────────────────── */}
+      <div
+        style={{
+          position: 'relative',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
+          background: '#1a1a1a',
+          aspectRatio: '3/2',
+        }}
+      >
+        {/* Base room photo — unique per color */}
+        <img
+          key={displayed.id}
+          src={displayed.image}
+          alt={`Room with ${displayed.name} wall paint`}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+            opacity: fading ? 0 : 1,
+            transition: 'opacity 0.26s ease',
+            ...selTex.imgStyle,
+          }}
+        />
+
+        {/* Texture overlay — applied to the photo surface (subtle, wall-area focused) */}
+        {selTex.overlayStyle && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              borderRadius: '16px',
+              ...selTex.overlayStyle,
+            }}
+          />
+        )}
+
+        {/* ── Top badge ── */}
+        <div
+          style={{
+            position: 'absolute', top: '14px', right: '14px',
+            background: 'rgba(0,0,0,0.52)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            padding: '5px 13px', borderRadius: '20px',
+            fontSize: '10px', fontWeight: '800', color: 'white',
+            textTransform: 'uppercase', letterSpacing: '0.9px',
+            display: 'flex', alignItems: 'center', gap: '6px',
+          }}
+        >
+          <span style={{ color: '#facc15', fontSize: '9px' }}>✦</span>
+          Real Room Visualizer
+        </div>
+
+        {/* ── Bottom pill ── */}
+        <div
+          style={{
+            position: 'absolute', bottom: '14px', left: '14px',
+            display: 'flex', alignItems: 'center', gap: '10px',
+            background: 'rgba(0,0,0,0.58)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '30px',
+            padding: '8px 16px',
+          }}
+        >
+          <div
+            style={{
+              width: '14px', height: '14px', borderRadius: '50%',
+              backgroundColor: selColor.hex,
+              border: '2px solid rgba(255,255,255,0.7)',
+              flexShrink: 0,
+              boxShadow: `0 0 8px ${selColor.hex}aa`,
+            }}
+          />
+          <span style={{ fontSize: '12px', fontWeight: '700', color: 'white' }}>
+            {selColor.name}
+          </span>
+          {selTex.id !== 'flat' && (
+            <>
+              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px' }}>·</span>
+              <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.78)' }}>
+                {selTex.name}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── CONTROL PANEL ────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        {/* Heading */}
+        <div>
+          <span
+            className="section-subtitle"
+            style={{ fontSize: '11px', letterSpacing: '1.2px' }}
+          >
+            Dutex Color Visualizer
+          </span>
+          <h3 style={{ fontSize: '24px', marginBottom: '8px', marginTop: '5px', lineHeight: 1.25 }}>
+            See Your Wall,<br />Transformed Instantly
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: 1.65 }}>
+            Pick a shade below and watch the wall color switch in a real room photo — just like calling the painter!
+          </p>
+        </div>
+
+        {/* 01 — Color swatches */}
+        <div>
+          <p
+            style={{
+              fontSize: '11px', fontWeight: '800',
+              textTransform: 'uppercase', letterSpacing: '1.2px',
+              marginBottom: '14px', color: 'var(--text-dark)',
+            }}
+          >
+            01 &nbsp;Paint Color
+          </p>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+            {COLORS.map((col) => {
+              const active = selColor.id === col.id;
+              return (
+                <button
+                  key={col.id}
+                  onClick={() => handleColor(col)}
+                  title={col.name}
+                  style={{
+                    width: '38px', height: '38px',
+                    borderRadius: '50%',
+                    backgroundColor: col.hex,
+                    cursor: 'pointer',
+                    border: active ? '3px solid #111' : '2px solid rgba(0,0,0,0.1)',
+                    boxShadow: active
+                      ? `0 0 0 3px ${col.hex}55, 0 4px 14px rgba(0,0,0,0.2)`
+                      : '0 2px 6px rgba(0,0,0,0.1)',
+                    transform: active ? 'scale(1.22)' : 'scale(1)',
+                    transition: 'all 0.22s cubic-bezier(0.34,1.56,0.64,1)',
+                    flexShrink: 0,
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          {/* Color info card */}
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              padding: '12px 16px',
+              background: `linear-gradient(135deg, ${selColor.hex}15, ${selColor.hex}05)`,
+              border: `1.5px solid ${selColor.hex}40`,
+              borderRadius: '12px',
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <div
+              style={{
+                width: '36px', height: '36px', borderRadius: '10px',
+                backgroundColor: selColor.hex,
+                border: '1px solid rgba(0,0,0,0.08)',
+                flexShrink: 0,
+                boxShadow: `0 4px 14px ${selColor.hex}60`,
+              }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong style={{ fontSize: '14px', color: 'var(--text-dark)', display: 'block', marginBottom: '2px' }}>
+                {selColor.name}
+              </strong>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: '500' }}>
+                {selColor.label}
+              </span>
+            </div>
+            <span
+              style={{
+                fontSize: '11px', fontWeight: '700',
+                color: selColor.hex, fontFamily: 'monospace',
+                letterSpacing: '0.5px', flexShrink: 0,
+              }}
+            >
+              {selColor.hex.toUpperCase()}
+            </span>
+          </div>
+        </div>
+
+        {/* 02 — Texture finish */}
+        <div>
+          <p
+            style={{
+              fontSize: '11px', fontWeight: '800',
+              textTransform: 'uppercase', letterSpacing: '1.2px',
+              marginBottom: '12px', color: 'var(--text-dark)',
+            }}
+          >
+            02 &nbsp;Wall Finish
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {TEXTURES.map((tex) => {
+              const active = selTex.id === tex.id;
+              return (
+                <button
+                  key={tex.id}
+                  onClick={() => setSelTex(tex)}
+                  style={{
+                    padding: '11px 10px',
+                    borderRadius: '12px',
+                    border: active
+                      ? '2px solid var(--primary)'
+                      : '1.5px solid var(--border-color)',
+                    backgroundColor: active
+                      ? 'rgba(92,103,66,0.08)'
+                      : 'var(--bg-white)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.18s ease',
+                    boxShadow: active ? '0 0 0 3px rgba(92,103,66,0.10)' : 'none',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex', alignItems: 'center',
+                      gap: '7px', marginBottom: '4px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '14px',
+                        color: active ? 'var(--primary)' : 'var(--text-muted)',
+                      }}
+                    >
+                      {tex.icon}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '12px', fontWeight: '700',
+                        color: active ? 'var(--primary)' : 'var(--text-dark)',
+                      }}
+                    >
+                      {tex.name}
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '10.5px',
+                      color: 'var(--text-muted)',
+                      marginLeft: '21px',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {tex.desc}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

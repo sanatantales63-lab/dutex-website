@@ -1,0 +1,259 @@
+import React, { useState } from 'react';
+
+const COLORS = [
+  { name: 'Dutex Olive', hex: '#5C6742', desc: 'Inspired by nature, perfect for feature walls and study rooms.' },
+  { name: 'Royal Terracotta', hex: '#A94E1D', desc: 'A rich, warm clay shade that brings grounding and energy.' },
+  { name: 'Sand Gold', hex: '#D2A85C', desc: 'An elegant, reflective warm metallic tone that adds luxury.' },
+  { name: 'Vintage Beige', hex: '#FAF6F0', desc: 'A soft, calming off-white base that complements textures.' },
+  { name: 'Ocean Spruce', hex: '#374E45', desc: 'Deep teal forest green, creating a cozy and bold environment.' },
+  { name: 'Dusty Rose', hex: '#9C6F6D', desc: 'A muted, romantic clay pink that pairs nicely with gold.' },
+  { name: 'Warm Mustard', hex: '#B28E3B', desc: 'A vibrant, creative accent that stimulates light and joy.' }
+];
+
+const TEXTURES = [
+  { id: 'flat', name: 'Premium Flat Emulsion', filter: 'none' },
+  { id: 'sandstone', name: 'Sandstone Grainy', filter: 'url(#sandstone-pattern)' },
+  { id: 'stucco', name: 'Stucco Swirl', filter: 'url(#stucco-pattern)' },
+  { id: 'metallic', name: 'Metallic Pearl Gloss', filter: 'url(#metallic-gradient)' }
+];
+
+export default function Visualizer() {
+  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+  const [selectedTexture, setSelectedTexture] = useState(TEXTURES[0]);
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '40px',
+      alignItems: 'center',
+      background: 'var(--bg-white)',
+      padding: '30px',
+      borderRadius: 'var(--radius-md)',
+      boxShadow: 'var(--shadow-md)'
+    }} className="visualizer-grid">
+      
+      {/* SVG Canvas for Room Visualizer */}
+      <div style={{ position: 'relative', width: '100%' }}>
+        <svg 
+          viewBox="0 0 400 300" 
+          width="100%" 
+          height="100%" 
+          style={{ 
+            borderRadius: 'var(--radius-sm)', 
+            boxShadow: 'var(--shadow-sm)',
+            background: '#F0ECE3',
+            overflow: 'hidden'
+          }}
+        >
+          {/* DEFINITIONS FOR TEXTURE FILTERS */}
+          <defs>
+            {/* Grainy Sandstone texture filter using feTurbulence */}
+            <filter id="sandstone-pattern" x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" result="noise" />
+              <feDiffuseLighting in="noise" lighting-color="#fff" surfaceScale="2" result="light">
+                <feDistantLight azimuth="45" elevation="60" />
+              </feDiffuseLighting>
+              <feBlend mode="multiply" in="SourceGraphic" in2="light" />
+            </filter>
+
+            {/* Stucco pattern with swirl texture */}
+            <filter id="stucco-pattern" x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="turbulence" baseFrequency="0.15" numOctaves="3" result="noise" />
+              <feDiffuseLighting in="noise" lighting-color="#efefef" surfaceScale="5" result="light">
+                <feDistantLight azimuth="225" elevation="45" />
+              </feDiffuseLighting>
+              <feBlend mode="multiply" in="SourceGraphic" in2="light" />
+            </filter>
+
+            {/* Metallic radial gradient overlay */}
+            <linearGradient id="metallic-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#fff" stopOpacity="0.4" />
+              <stop offset="50%" stopColor="#000" stopOpacity="0.0" />
+              <stop offset="100%" stopColor="#fff" stopOpacity="0.25" />
+            </linearGradient>
+          </defs>
+
+          {/* MAIN BACK WALL */}
+          <rect 
+            x="0" 
+            y="0" 
+            width="300" 
+            height="220" 
+            fill={selectedColor.hex} 
+            filter={selectedTexture.id === 'sandstone' ? 'url(#sandstone-pattern)' : selectedTexture.id === 'stucco' ? 'url(#stucco-pattern)' : 'none'}
+            style={{ transition: 'fill 0.4s ease' }}
+          />
+
+          {/* Side wall (Left) for shadow depth */}
+          <path 
+            d="M300 0 L400 0 L400 220 L300 220 Z" 
+            fill={selectedColor.hex}
+            filter={selectedTexture.id === 'sandstone' ? 'url(#sandstone-pattern)' : selectedTexture.id === 'stucco' ? 'url(#stucco-pattern)' : 'none'}
+            style={{ transition: 'fill 0.4s ease', filter: 'brightness(0.85)' }}
+          />
+
+          {/* Metallic Gloss overlay */}
+          {selectedTexture.id === 'metallic' && (
+            <>
+              <rect x="0" y="0" width="300" height="220" fill="url(#metallic-gradient)" style={{ mixBlendMode: 'overlay', pointerEvents: 'none' }} />
+              <path d="M300 0 L400 0 L400 220 L300 220 Z" fill="url(#metallic-gradient)" style={{ mixBlendMode: 'overlay', pointerEvents: 'none', filter: 'brightness(0.85)' }} />
+            </>
+          )}
+
+          {/* Floor */}
+          <path d="M0 220 L300 220 L400 220 L400 300 L0 300 Z" fill="#D3C9BC" />
+          <path d="M0 220 L400 220" stroke="#BCAEA0" strokeWidth="2" />
+          {/* Wooden planks lines */}
+          <line x1="80" y1="220" x2="60" y2="300" stroke="#C4B7A7" strokeWidth="1" />
+          <line x1="200" y1="220" x2="180" y2="300" stroke="#C4B7A7" strokeWidth="1" />
+          <line x1="300" y1="220" x2="320" y2="300" stroke="#A99B8B" strokeWidth="1" />
+
+          {/* Baseboard */}
+          <rect x="0" y="212" width="400" height="8" fill="#ECE5DB" />
+          <line x1="0" y1="212" x2="400" y2="212" stroke="#DFD7CD" strokeWidth="1" />
+
+          {/* Window on Back Wall */}
+          <rect x="40" y="30" width="100" height="120" fill="#EBF5FB" stroke="#ECE5DB" strokeWidth="5" />
+          <line x1="90" y1="30" x2="90" y2="150" stroke="#ECE5DB" strokeWidth="3" />
+          <line x1="40" y1="90" x2="140" y2="90" stroke="#ECE5DB" strokeWidth="3" />
+          {/* Glass glare */}
+          <path d="M45 40 L100 35 L50 85 Z" fill="white" opacity="0.3" />
+          <path d="M95 95 L135 90 L100 135 Z" fill="white" opacity="0.3" />
+
+          {/* Wall Picture Frame */}
+          <rect x="230" y="40" width="50" height="70" fill="#ECEAE4" stroke="#2D3124" strokeWidth="3" />
+          <rect x="235" y="45" width="40" height="60" fill="#A94E1D" opacity="0.7" />
+          {/* Mini drawing in frame */}
+          <circle cx="255" cy="70" r="10" fill="#5C6742" />
+          <path d="M240 100 L255 85 L270 100" fill="#D2A85C" />
+
+          {/* Potted Plant */}
+          <ellipse cx="340" cy="245" rx="18" ry="6" fill="#C57A51" />
+          <path d="M322 245 L326 280 L354 280 L358 245 Z" fill="#A05C33" />
+          {/* Leaves */}
+          <path d="M340 245 Q350 200 370 210 Q350 215 340 245 Z" fill="#587E60" />
+          <path d="M340 245 Q310 210 295 230 Q320 235 340 245 Z" fill="#4B6E53" />
+          <path d="M340 245 Q335 180 345 190 Q345 210 340 245 Z" fill="#678E6F" />
+          <path d="M340 245 Q365 220 375 240 Q355 242 340 245 Z" fill="#587E60" />
+          <path d="M340 245 Q320 220 315 205 Q330 225 340 245 Z" fill="#4B6E53" />
+
+          {/* Couch / Sofa */}
+          {/* Shadow */}
+          <rect x="110" y="245" width="160" height="15" fill="rgba(0,0,0,0.15)" rx="7" filter="blur(2px)" />
+          {/* Base */}
+          <rect x="120" y="225" width="140" height="25" fill="#3D3C38" rx="4" />
+          {/* Cushions */}
+          <rect x="125" y="195" width="65" height="32" fill="#E6E3DC" rx="6" stroke="#CFCBC2" strokeWidth="1" />
+          <rect x="190" y="195" width="65" height="32" fill="#E6E3DC" rx="6" stroke="#CFCBC2" strokeWidth="1" />
+          {/* Backrest */}
+          <rect x="125" y="160" width="130" height="40" fill="#ECEAE4" rx="8" stroke="#DCD9D0" strokeWidth="1" />
+          {/* Armrests */}
+          <rect x="110" y="180" width="20" height="50" fill="#DCD9D0" rx="8" />
+          <rect x="250" y="180" width="20" height="50" fill="#DCD9D0" rx="8" />
+          {/* Pillows */}
+          <rect x="135" y="185" width="25" height="25" fill="#A94E1D" rx="4" transform="rotate(-10 135 185)" />
+          <rect x="220" y="185" width="25" height="25" fill="#5C6742" rx="4" transform="rotate(15 220 185)" />
+
+          {/* Lamp */}
+          {/* Base */}
+          <path d="M360 215 L390 215 L375 225 Z" fill="#888" />
+          {/* Pole */}
+          <line x1="375" y1="215" x2="375" y2="100" stroke="#777" strokeWidth="3" />
+          {/* Shade */}
+          <path d="M360 100 L390 100 L382 75 L368 75 Z" fill="#ECE5DB" stroke="#888" strokeWidth="1" />
+          {/* Light Glow overlay */}
+          <polygon points="375,100 330,220 420,220" fill="yellow" opacity="0.1" />
+        </svg>
+
+        {/* Floating Badges */}
+        <div style={{
+          position: 'absolute',
+          top: '15px',
+          right: '15px',
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: '6px 12px',
+          borderRadius: 'var(--radius-sm)',
+          fontSize: '11px',
+          fontWeight: '700',
+          boxShadow: 'var(--shadow-sm)',
+          color: 'var(--primary)',
+          textTransform: 'uppercase',
+          letterSpacing: '1px'
+        }}>
+          Interactive Demo
+        </div>
+      </div>
+
+      {/* Control Panel */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div>
+          <span className="section-subtitle">Dutex Color Visualizer</span>
+          <h3 style={{ fontSize: '26px', marginBottom: '8px' }}>Visualize Your Dream Room</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+            Choose a signature paint shade from our eco-friendly palette and see how it instantly revamps the room.
+          </p>
+        </div>
+
+        {/* 1. Color Selector */}
+        <div>
+          <h4 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', color: 'var(--text-dark)' }}>
+            1. Select Paint Color
+          </h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            {COLORS.map((col) => (
+              <button
+                key={col.name}
+                onClick={() => setSelectedColor(col)}
+                title={col.name}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: col.hex,
+                  border: selectedColor.name === col.name ? '3px solid var(--text-dark)' : '1px solid rgba(0,0,0,0.1)',
+                  boxShadow: selectedColor.name === col.name ? 'var(--shadow-sm)' : 'none',
+                  transform: selectedColor.name === col.name ? 'scale(1.15)' : 'scale(1)',
+                  transition: 'transform var(--transition-fast), border var(--transition-fast)'
+                }}
+              />
+            ))}
+          </div>
+          {/* Selected color info */}
+          <div style={{ marginTop: '12px', padding: '10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', borderLeft: `4px solid ${selectedColor.hex}` }}>
+            <strong style={{ fontSize: '14px', color: 'var(--text-dark)' }}>{selectedColor.name}</strong>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{selectedColor.desc}</p>
+          </div>
+        </div>
+
+        {/* 2. Texture Selector */}
+        <div>
+          <h4 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', color: 'var(--text-dark)' }}>
+            2. Select Texture Finish
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {TEXTURES.map((tex) => (
+              <button
+                key={tex.id}
+                onClick={() => setSelectedTexture(tex)}
+                style={{
+                  padding: '10px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  borderRadius: 'var(--radius-sm)',
+                  border: selectedTexture.id === tex.id ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                  backgroundColor: selectedTexture.id === tex.id ? 'rgba(92, 103, 66, 0.08)' : 'var(--bg-white)',
+                  color: selectedTexture.id === tex.id ? 'var(--primary)' : 'var(--text-dark)',
+                  textAlign: 'left',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                {tex.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

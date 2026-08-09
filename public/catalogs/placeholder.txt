@@ -1,0 +1,11 @@
+Place your catalog PDF files in this folder.
+The website is pre-configured to open files matching:
+- /catalogs/interior_emulsions.pdf
+- /catalogs/weather_shield.pdf
+- /catalogs/sandstone_texture.pdf
+- /catalogs/stucco_plaster.pdf
+- /catalogs/pebble_texture.pdf
+- /catalogs/wall_putty.pdf
+- /catalogs/damp_proofing.pdf
+- /catalogs/wall_primers.pdf
+- /catalogs/wood_polishes.pdf
