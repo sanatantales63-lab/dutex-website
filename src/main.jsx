@@ -8,7 +8,7 @@ import PausedOverlay from './PausedOverlay.jsx'
 // 🔴 SITE PAUSED — Payment pending from client
 // To UNPAUSE: Change the line below to → const SITE_PAUSED = false
 // =============================================
-const SITE_PAUSED = true
+const SITE_PAUSED = false
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
